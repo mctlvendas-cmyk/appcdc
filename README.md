@@ -1,30 +1,26 @@
-# OCCDC
+# ?? Sistema de Crediário Próprio
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Um sistema simples e eficiente para controle de crediário em pequenos comércios, lojas ou vendedores autônomos.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rodrigos-projects-713177ed/v0-image-analysis)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/KG8Mf3Vredh)
+## ?? Funcionalidades
+- Cadastro de clientes
+- Controle de vendas a prazo
+- Acompanhamento de parcelas
+- Histórico de pagamentos
+- Interface simples e intuitiva
 
-## Overview
+## ??? Tecnologias Utilizadas
+- HTML, CSS, JavaScript
+- Armazenamento local (LocalStorage)
+- Design responsivo
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## ?? Como usar
+1. Clone este repositório:
+   `ash
+   git clone https://github.com/seu-usuario/seu-repo.git
+   ``n2. Abra o arquivo index.html no navegador
+3. Comece a cadastrar clientes e vendas!
 
-## Deployment
-
-Your project is live at:
-
-**[https://vercel.com/rodrigos-projects-713177ed/v0-image-analysis](https://vercel.com/rodrigos-projects-713177ed/v0-image-analysis)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/projects/KG8Mf3Vredh](https://v0.app/chat/projects/KG8Mf3Vredh)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## ?? Contato
+Desenvolvido por: **MC TL Vendas**
+Email: mctlvendas@gmail.com
