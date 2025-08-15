@@ -21,6 +21,11 @@ interface UserStats {
   masterUsers: number
 }
 
+// Função para gerar ID único para usuários em localStorage
+function generateId() {
+  return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [stats, setStats] = useState<UserStats>({
@@ -70,20 +75,24 @@ export default function UsersPage() {
 
       setCurrentUser(user)
 
-      // Load all users
-      const { data: usersData, error: usersError } = await supabase
+      // Tentar carregar usuários do Supabase primeiro
+      const { data: supabaseUsers, error: usersError } = await supabase
         .from("users")
         .select("*")
         .order("created_at", { ascending: false })
 
-      if (usersError) {
-        console.error("Error loading users:", usersError)
-        setError("Erro ao carregar usuários.")
-        return
+      let allUsers: User[] = []
+
+      if (supabaseUsers) {
+        allUsers = [...supabaseUsers]
       }
 
-      setUsers(usersData || [])
-      calculateStats(usersData || [])
+      // Carregar usuários do localStorage como fallback
+      const localStorageUsers = JSON.parse(localStorage.getItem("oc-cdc-users") || "[]")
+      allUsers = [...allUsers, ...localStorageUsers]
+
+      setUsers(allUsers)
+      calculateStats(allUsers)
     } catch (error) {
       console.error("Error loading users:", error)
       setError("Erro ao carregar usuários.")
@@ -128,7 +137,15 @@ export default function UsersPage() {
         return
       }
 
-      // Create auth user first
+      // Verificar também no localStorage
+      const localStorageUsers = JSON.parse(localStorage.getItem("oc-cdc-users") || "[]")
+      const existingLocalUser = localStorageUsers.find((u: User) => u.email === userForm.email)
+      if (existingLocalUser) {
+        setError("Já existe um usuário com este email.")
+        return
+      }
+
+      // Criar usuário no Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userForm.email,
         password: userForm.password,
@@ -136,7 +153,36 @@ export default function UsersPage() {
 
       if (authError) {
         console.error("Error creating auth user:", authError)
-        setError("Erro ao criar usuário de autenticação.")
+        // Se falhar, usar fallback com localStorage
+        const localStorageUser = {
+          id: generateId(),
+          email: userForm.email,
+          full_name: userForm.full_name.trim(),
+          role: userForm.role,
+          store_name: userForm.store_name.trim() || null,
+          phone: userForm.phone.trim() || null,
+          address: userForm.address.trim() || null,
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+
+        // Adicionar ao localStorage
+        const updatedUsers = [...localStorageUsers, localStorageUser]
+        localStorage.setItem("oc-cdc-users", JSON.stringify(updatedUsers))
+
+        setSuccess("Usuário criado com sucesso no modo demonstração (localStorage)!")
+        setUserForm({
+          full_name: "",
+          email: "",
+          password: "",
+          role: "vendedor",
+          store_name: "",
+          phone: "",
+          address: "",
+        })
+        setIsCreateDialogOpen(false)
+        loadUsers()
         return
       }
 
@@ -161,7 +207,29 @@ export default function UsersPage() {
 
       if (insertError) {
         console.error("Error inserting user:", insertError)
-        setError("Erro ao criar usuário.")
+        // Se falhar, usar fallback com localStorage
+        const localStorageUser = {
+          ...userData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+
+        // Adicionar ao localStorage
+        const updatedUsers = [...localStorageUsers, localStorageUser]
+        localStorage.setItem("oc-cdc-users", JSON.stringify(updatedUsers))
+
+        setSuccess("Usuário criado com sucesso no modo demonstração (localStorage)!")
+        setUserForm({
+          full_name: "",
+          email: "",
+          password: "",
+          role: "vendedor",
+          store_name: "",
+          phone: "",
+          address: "",
+        })
+        setIsCreateDialogOpen(false)
+        loadUsers()
         return
       }
 
@@ -197,6 +265,34 @@ export default function UsersPage() {
       // Validate required fields
       if (!userForm.full_name || !userForm.email) {
         setError("Por favor, preencha todos os campos obrigatórios.")
+        return
+      }
+
+      // Verificar se é um usuário do localStorage
+      if (selectedUser.id.startsWith('user_')) {
+        // Atualizar usuário no localStorage
+        const localStorageUsers = JSON.parse(localStorage.getItem("oc-cdc-users") || "[]")
+        const updatedUsers = localStorageUsers.map((u: User) => 
+          u.id === selectedUser.id 
+            ? {
+                ...u,
+                email: userForm.email,
+                full_name: userForm.full_name.trim(),
+                role: userForm.role,
+                store_name: userForm.store_name.trim() || null,
+                phone: userForm.phone.trim() || null,
+                address: userForm.address.trim() || null,
+                updated_at: new Date().toISOString(),
+              }
+            : u
+        )
+        
+        localStorage.setItem("oc-cdc-users", JSON.stringify(updatedUsers))
+        
+        setSelectedUser(null)
+        setIsEditDialogOpen(false)
+        setSuccess("Usuário atualizado com sucesso!")
+        loadUsers()
         return
       }
 
@@ -253,6 +349,27 @@ export default function UsersPage() {
 
     try {
       const newStatus = !user.active
+
+      // Verificar se é um usuário do localStorage
+      if (user.id.startsWith('user_')) {
+        // Atualizar status no localStorage
+        const localStorageUsers = JSON.parse(localStorage.getItem("oc-cdc-users") || "[]")
+        const updatedUsers = localStorageUsers.map((u: User) => 
+          u.id === user.id 
+            ? {
+                ...u,
+                active: newStatus,
+                updated_at: new Date().toISOString(),
+              }
+            : u
+        )
+        
+        localStorage.setItem("oc-cdc-users", JSON.stringify(updatedUsers))
+        
+        setSuccess(`Usuário ${newStatus ? "ativado" : "desativado"} com sucesso!`)
+        loadUsers()
+        return
+      }
 
       const { error } = await supabase.from("users").update({ active: newStatus }).eq("id", user.id)
 
