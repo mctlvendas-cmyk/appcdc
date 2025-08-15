@@ -1,15 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = "https://lebgwxbvvljdshtzvzwh.supabase.co"
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlYmd3eGJ2dmxqZHNodHp2endoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMzg2NDQsImV4cCI6MjA3MDYxNDY0NH0.vMRXRXrh0Ct2F-TVKkd-YeP4Em0OsWPWd-FR2AWWZ70"
+// Use environment variables for security
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
 // Helper function to check if Supabase is configured
 export const isSupabaseConfigured = () => {
-  return true
+  return !!supabaseUrl && !!supabaseAnonKey && !!supabase
 }
 
 // Types for our database
